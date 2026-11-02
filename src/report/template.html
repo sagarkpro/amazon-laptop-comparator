@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Laptop comparison</title>
+    <style>__DASHBOARD_CSS__</style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-block">
+          <p class="eyebrow">Amazon India · Playwright extraction</p>
+          <h1>Laptop comparison</h1>
+          <p class="subtitle" id="subtitle">Loading report…</p>
+        </div>
+        <nav class="top-actions" aria-label="Export report">
+          <a class="button" href="latest.csv" download>Export CSV</a>
+          <a class="button button-strong" href="latest.json" download>Export JSON</a>
+        </nav>
+      </header>
+
+      <section class="toolbar" aria-label="Search, filter and sort">
+        <label class="search-box">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="m20 20-4.2-4.2"></path>
+          </svg>
+          <input
+            id="search"
+            type="search"
+            placeholder="Search laptops, GPU, CPU, ASIN…"
+            autocomplete="off"
+          />
+        </label>
+        <div class="filter-group">
+          <label class="select-wrap">
+            <span>GPU</span>
+            <select id="gpu-filter">
+              <option value="all">All GPUs</option>
+            </select>
+          </label>
+          <label class="select-wrap">
+            <span>RAM</span>
+            <select id="ram-filter">
+              <option value="all">All RAM</option>
+            </select>
+          </label>
+          <label class="select-wrap">
+            <span>Stock</span>
+            <select id="stock-filter">
+              <option value="all">All stock</option>
+              <option value="in">In stock</option>
+              <option value="out">Out of stock</option>
+            </select>
+          </label>
+          <label class="select-wrap">
+            <span>Sort</span>
+            <select id="sort-select">
+              <option value="effective-asc">Effective price: low to high</option>
+              <option value="effective-desc">Effective price: high to low</option>
+              <option value="price-asc">Listed price: low to high</option>
+              <option value="price-desc">Listed price: high to low</option>
+              <option value="gpu-asc">GPU model</option>
+              <option value="vram-desc">VRAM: high to low</option>
+              <option value="tgp-desc">GPU power: high to low</option>
+              <option value="cpu-asc">CPU model</option>
+              <option value="ram-desc">RAM: high to low</option>
+              <option value="discount-desc">Biggest discount</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <div class="content-grid">
+        <main class="table-panel" aria-label="Laptop comparison table">
+          <div class="table-scroll">
+            <table id="comparison-table">
+              <thead>
+                <tr>
+                  <th scope="col" class="col-laptop">Laptop</th>
+                  <th scope="col">GPU</th>
+                  <th scope="col">VRAM</th>
+                  <th scope="col">TGP</th>
+                  <th scope="col">CPU</th>
+                  <th scope="col">RAM</th>
+                  <th scope="col" class="col-storage">Storage</th>
+                  <th scope="col" class="col-display">Display</th>
+                  <th scope="col" class="col-price" title="Listed price, full-payment effective price, and EMI price before fees">Price</th>
+                  <th scope="col">Discount</th>
+                  <th scope="col">Stock</th>
+                  <th scope="col" class="col-chevron"><span class="sr-only">Details</span></th>
+                </tr>
+              </thead>
+              <tbody id="table-body"></tbody>
+            </table>
+            <div class="empty-state" id="empty-state" hidden>
+              <h2>No matching laptops</h2>
+              <p>Adjust the search or filters. If the report is empty, add Amazon India product URLs to <code>data/laptop-links.txt</code> and run <code>npm run compare</code>.</p>
+            </div>
+          </div>
+          <footer class="table-footer">
+            <span id="result-count">0 products</span>
+            <span class="table-hint">Green = lowest effective full-payment price in view · EMI* before processing fees</span>
+          </footer>
+        </main>
+
+        <aside class="detail-panel" id="detail-panel" aria-label="Selected laptop details" hidden>
+          <div class="panel-header">
+            <span class="panel-eyebrow">Selected laptop</span>
+            <button class="icon-button" id="close-panel" type="button" aria-label="Close details">×</button>
+          </div>
+          <div id="panel-content"></div>
+        </aside>
+        <div class="panel-backdrop" id="panel-backdrop" hidden></div>
+      </div>
+
+      <footer class="app-footer">
+        <span>Prices and offers change; verify on Amazon before purchase. Unverified specifications are listing claims.</span>
+        <span>* EMI prices are shown before processing fees/interest and are not treated as the overall lowest price.</span>
+      </footer>
+    </div>
+
+    <script id="report-data" type="application/json">__REPORT_DATA__</script>
+    <script>__DASHBOARD_JS__</script>
+  </body>
+</html>

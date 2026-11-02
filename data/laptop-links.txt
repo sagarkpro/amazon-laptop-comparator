@@ -1,0 +1,10 @@
+# Amazon India laptop comparison links
+#
+# One Amazon India product URL per line.
+# Blank lines and lines beginning with # are ignored.
+# Tracking parameters are removed and duplicate ASINs are collapsed.
+#
+# Examples:
+# https://www.amazon.in/dp/PRODUCT_ID_1
+# https://www.amazon.in/dp/PRODUCT_ID_2
+

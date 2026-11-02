@@ -1,0 +1,31 @@
+{
+  "name": "amazon-laptop-comparison",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright-based Amazon India laptop comparison report generator",
+  "type": "module",
+  "engines": {
+    "node": ">=20.12"
+  },
+  "scripts": {
+    "compare": "tsx src/cli.ts",
+    "compare:headed": "tsx src/cli.ts --headed",
+    "compare:headless": "tsx src/cli.ts --headless",
+    "dry-run": "tsx src/cli.ts --dry-run",
+    "dev": "tsx src/cli.ts --headed",
+    "build": "tsc -p tsconfig.build.json && node scripts/copy-assets.mjs",
+    "start": "node dist/cli.js",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "playwright:install": "playwright install chromium",
+    "clean": "node scripts/clean.mjs"
+  },
+  "dependencies": {
+    "playwright": "^1.50.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

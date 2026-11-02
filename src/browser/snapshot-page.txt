@@ -1,0 +1,342 @@
+({ requestedUrl: requested, httpStatus: status }) => {
+  const clean = (value) =>
+    (value ?? "")
+      .replace(/[\u200B-\u200D\uFEFF]/g, "")
+      .replace(/\u00A0/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const unique = (values) => {
+    const seen = new Set();
+    const result = [];
+    for (const value of values) {
+      const cleaned = clean(value);
+      if (!cleaned || seen.has(cleaned)) continue;
+      seen.add(cleaned);
+      result.push(cleaned);
+    }
+    return result;
+  };
+
+  const textOf = (selector) => {
+    const element = document.querySelector(selector);
+    return element ? clean(element.innerText || element.textContent) : "";
+  };
+
+  const textsOf = (selector) =>
+    unique(
+      Array.from(document.querySelectorAll(selector)).map((element) =>
+        clean(element.innerText || element.textContent),
+      ),
+    );
+
+  const blocksOf = (selector) =>
+    unique(
+      Array.from(document.querySelectorAll(selector)).flatMap((element) =>
+        (element.innerText || element.textContent || "")
+          .split(/\n+/)
+          .map((line) => clean(line))
+          .filter(Boolean),
+      ),
+    );
+
+  const specRows = [];
+  const seenRows = new Set();
+
+  const addRow = (label, value, section, sourceType) => {
+    const cleanedLabel = clean(label).replace(/:$/, "");
+    const cleanedValue = clean(value);
+    if (!cleanedLabel || !cleanedValue) return;
+    if (cleanedLabel.length > 90 || cleanedValue.length > 1800) return;
+    const key = `${cleanedLabel.toLowerCase()}|${cleanedValue.toLowerCase()}`;
+    if (seenRows.has(key)) return;
+    seenRows.add(key);
+    specRows.push({
+      label: cleanedLabel,
+      value: cleanedValue,
+      section,
+      sourceType,
+    });
+  };
+
+  const tables = [
+    ["#productOverview_feature_div", "product overview"],
+    ["#productDetails_techSpec_section_1", "technical specifications"],
+    ["#productDetails_techSpec_section_2", "technical specifications"],
+    ["#technicalSpecifications_section_1", "technical specifications"],
+    ["#productDetails_detailBullets_sections1", "product information"],
+    ["#productDetails_db_sections", "product details"],
+    ["#prodDetails", "product details"],
+    ["#productFactsDesktopExpander", "product facts"],
+    ["#productFactsDesktop_feature_div", "product facts"],
+    ["#productFactsMobile_feature_div", "product facts"],
+    [".prodDetTable", "product details"],
+  ];
+
+  for (const [selector, section] of tables) {
+    for (const row of Array.from(document.querySelectorAll(`${selector} tr`))) {
+      const cells = Array.from(row.children)
+        .filter((element) => element.tagName === "TH" || element.tagName === "TD")
+        .map((element) => clean(element.innerText || element.textContent));
+      for (let index = 0; index + 1 < cells.length; index += 2) {
+        addRow(
+          cells[index] || "",
+          cells[index + 1] || "",
+          section,
+          "amazon_technical_specs",
+        );
+      }
+    }
+  }
+
+  for (const item of Array.from(
+    document.querySelectorAll(
+      "#detailBullets_feature_div li, #detailBulletsWrapper_feature_div li",
+    ),
+  )) {
+    const text = clean(item.innerText || item.textContent);
+    const colon = text.indexOf(":");
+    if (colon > 0) {
+      addRow(
+        text.slice(0, colon),
+        text.slice(colon + 1),
+        "detail bullets",
+        "amazon_technical_specs",
+      );
+      continue;
+    }
+    const bold = item.querySelector(".a-text-bold");
+    if (bold) {
+      const label = clean(bold.innerText || bold.textContent);
+      const value = clean(text.replace(label, ""));
+      addRow(label, value, "detail bullets", "amazon_technical_specs");
+    }
+  }
+
+  const bulletTexts = textsOf("#feature-bullets li");
+  const descriptionText =
+    textOf("#productDescription") || textOf("#aplus") || null;
+
+  const priceCoreSelectors = [
+    "#corePriceDisplay_desktop_feature_div",
+    "#corePrice_feature_div",
+    "#apex_desktop",
+    "#price",
+    "#priceblock_ourprice",
+    "#priceblock_dealprice",
+    "#priceblock_saleprice",
+    "#price_inside_buybox",
+    "#newBuyBoxPrice",
+    "#tp_price_block_total_price_ww",
+  ];
+
+  const coreTexts = unique(
+    priceCoreSelectors.flatMap((selector) => textsOf(selector)),
+  );
+
+  const priceTexts = unique([
+    ...textsOf(
+      "#corePriceDisplay_desktop_feature_div .a-price .a-offscreen, #corePrice_feature_div .a-price .a-offscreen, #apex_desktop .a-price .a-offscreen, #buybox .a-price .a-offscreen, #price .a-price .a-offscreen",
+    ),
+    ...textsOf(
+      "#priceblock_ourprice, #priceblock_dealprice, #priceblock_saleprice, #price_inside_buybox, #newBuyBoxPrice",
+    ),
+  ]);
+
+  const mrpTexts = unique([
+    ...textsOf(
+      ".basisPrice .a-offscreen, #corePriceDisplay_desktop_feature_div .a-text-price .a-offscreen, #buybox .a-text-price .a-offscreen, #price .a-text-price .a-offscreen",
+    ),
+    ...textsOf("#listPrice, #priceblock_listprice, .basisPrice"),
+  ]);
+
+  const couponTexts = blocksOf(
+    "#couponBadge, #vpcButton, #couponFeature, #promoPriceBlockMessage, #applicable_promotion_list",
+  );
+
+  const bankOfferTexts = blocksOf(
+    "#bankoffers, #bankOffers, .bankoffer, #buybox .bankoffer, #applicable_promotion_list",
+  );
+
+  const bankOfferDetails = unique(
+    Array.from(
+      document.querySelectorAll(
+        "#InstantBankDiscount .vsx-offers-desktop-lv__item p",
+      ),
+    ).map((element) => clean(element.textContent || "")),
+  );
+
+  const otherOfferTexts = unique([
+    ...blocksOf(
+      "#amazonPayPromo, #primePriceBadge, #extraOfferBlocks, #exports_desktop_qualifiedBuybox, #applicable_promotion_list",
+    ),
+    ...textsOf(
+      "#vsxoffers_feature_div .offers-items-content .a-truncate-full, #vsxoffers_feature_div .a-truncate-full",
+    ),
+  ]);
+
+  const buyboxText = blocksOf("#buybox, #desktop_buybox").join("\n") || null;
+
+  const availabilityText =
+    textOf("#availability") ||
+    textOf("#availability_feature_div") ||
+    textOf("#outOfStock") ||
+    null;
+
+  const asinInputs = unique(
+    [
+      ...Array.from(
+        document.querySelectorAll(
+          "input#ASIN, input[name='ASIN'], input[name='asin'], #ASIN",
+        ),
+      ).map((element) => element.value || element.getAttribute("value") || ""),
+      ...Array.from(document.querySelectorAll("[data-asin]"))
+        .slice(0, 10)
+        .map((element) => element.getAttribute("data-asin") || ""),
+    ].filter((value) => /^[A-Z0-9]{10}$/i.test(value)),
+  );
+
+  const canonicalHref =
+    document.querySelector('link[rel="canonical"]')?.href ||
+    document
+      .querySelector('meta[property="og:url"]')
+      ?.getAttribute("content") ||
+    null;
+
+  let canonicalUrl = null;
+  if (canonicalHref) {
+    try {
+      canonicalUrl = new URL(canonicalHref, window.location.href).toString();
+    } catch {
+      canonicalUrl = null;
+    }
+  }
+
+  const jsonLdTexts = unique(
+    Array.from(
+      document.querySelectorAll('script[type="application/ld+json"]'),
+    ).map((element) => element.textContent || ""),
+  );
+
+  const heroImage =
+    document.querySelector("#landingImage") ||
+    document.querySelector("#imgTagWrapperId img") ||
+    document.querySelector("#main-image-container img") ||
+    document.querySelector("#imageBlock img") ||
+    null;
+  let dynamicImageUrl = null;
+  try {
+    const dynamic = JSON.parse(
+      heroImage?.getAttribute("data-a-dynamic-image") || "{}",
+    );
+    const entries = Object.entries(dynamic)
+      .filter(([url]) => typeof url === "string")
+      .sort((left, right) => {
+        const leftSize = Array.isArray(left[1]) ? Number(left[1][0]) || 0 : 0;
+        const rightSize = Array.isArray(right[1]) ? Number(right[1][0]) || 0 : 0;
+        return rightSize - leftSize;
+      });
+    dynamicImageUrl = entries[0]?.[0] || null;
+  } catch {
+    dynamicImageUrl = null;
+  }
+
+  const heroImageUrl =
+    clean(
+      heroImage?.getAttribute("data-old-hires") ||
+        heroImage?.getAttribute("data-a-hires") ||
+        dynamicImageUrl ||
+        heroImage?.getAttribute("data-src") ||
+        heroImage?.getAttribute("src") ||
+        "",
+    ) ||
+    clean(
+      document
+        .querySelector('meta[property="og:image"]')
+        ?.getAttribute("content") || "",
+    ) ||
+    null;
+
+  const documentTitle = clean(document.title) || null;
+  const lang = document.documentElement.lang || null;
+  const bodyTextSample = clean(document.body?.innerText || "").slice(0, 8000);
+  const titleAndBody =
+    `${documentTitle || ""}\n${bodyTextSample.slice(0, 3000)}`.toLowerCase();
+  const urlLower = window.location.href.toLowerCase();
+  const bodyLower = bodyTextSample.toLowerCase();
+
+  const captcha =
+    /validatecaptcha|\/errors\/validatecaptcha/i.test(window.location.href) ||
+    /robot check|enter the characters you see below|type the characters you see|not a robot/i.test(
+      `${titleAndBody}\n${bodyLower}`,
+    );
+
+  const robotCheck =
+    /robot check/i.test(documentTitle || "") ||
+    /enter the characters you see below|not a robot/i.test(bodyLower);
+
+  const signInForm = document.querySelector("form[name='signIn'], #ap_email");
+  const signInFormVisible = (() => {
+    if (!signInForm) return false;
+    const style = window.getComputedStyle(signInForm);
+    const rect = signInForm.getBoundingClientRect();
+    return (
+      style.display !== "none" &&
+      style.visibility !== "hidden" &&
+      rect.width > 0 &&
+      rect.height > 0
+    );
+  })();
+  const signIn =
+    /\/(?:ap|gp)\/signin/i.test(urlLower) || signInFormVisible;
+
+  const notFound =
+    /\/errors\/404/i.test(urlLower) ||
+    /page not found|we couldn't find that page|looking for something\?/i.test(
+      titleAndBody,
+    );
+
+  const unavailable =
+    document.querySelector("#outOfStock") !== null ||
+    /currently unavailable|temporarily out of stock|out of stock/i.test(
+      availabilityText || "",
+    );
+
+  return {
+    requestedUrl: requested,
+    finalUrl: window.location.href,
+    canonicalUrl,
+    httpStatus: status,
+    documentTitle,
+    lang,
+    jsonLdTexts,
+    asinInputs,
+    productTitle:
+      textOf("#productTitle") || textOf("#title") || textOf("h1#title") || null,
+    heroImageUrl,
+    byline: textOf("#bylineInfo") || null,
+    availabilityText,
+    bulletTexts,
+    descriptionText,
+    specRows,
+    price: {
+      coreTexts,
+      priceTexts,
+      mrpTexts,
+      couponTexts,
+      bankOfferTexts,
+      bankOfferDetails,
+      otherOfferTexts,
+      buyboxText,
+    },
+    signals: {
+      captcha,
+      signIn,
+      notFound,
+      robotCheck,
+      unavailable,
+    },
+    bodyTextSample,
+    extractedAt: new Date().toISOString(),
+  };
+}

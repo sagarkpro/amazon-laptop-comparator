@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "asin": "B0HJGRVBFF",
+      "verified": true,
+      "source": {
+        "type": "manufacturer_official",
+        "url": "https://psref.lenovo.com/Product/LOQ/LOQ_15ARP10E",
+        "retrievedAt": "2026-11-02T00:00:00.000Z"
+      },
+      "specs": {
+        "brand": "Lenovo",
+        "gpu": {
+          "model": "NVIDIA GeForce RTX 3050 Laptop GPU",
+          "type": "discrete",
+          "vramGb": 6,
+          "baseTgpW": 65,
+          "qualification": "Lenovo PSREF lists RTX 3050 6GB GDDR6 with TGP 65W for LOQ 15ARP10E configurations. Confirm the exact retail SKU on the listing."
+        },
+        "cpu": {
+          "source": {
+            "type": "manufacturer_official",
+            "url": "https://www.amd.com/en/products/processors/laptop/ryzen/7000-series/amd-ryzen-5-7535hs.html",
+            "retrievedAt": "2026-11-02T00:00:00.000Z"
+          },
+          "model": "AMD Ryzen 5 7535HS",
+          "configurableTdpW": {
+            "min": 35,
+            "max": 54
+          },
+          "qualification": "AMD lists Default TDP and Configurable TDP (cTDP) as 35-54W. This is a configurable range, not a single fixed base TDP."
+        },
+        "memory": {
+          "installedGb": 16,
+          "type": "DDR5",
+          "speedMhz": 4800,
+          "upgradeability": "yes",
+          "notes": "Lenovo PSREF lists 16GB SODIMM DDR5-4800; a SODIMM slot is indicated. Confirm the exact SKU slot count and maximum capacity."
+        }
+      }
+    }
+  ]
+}
